@@ -51,10 +51,11 @@ export function getRelativeResourcePath(fromFile: TFile, targetPath: string): st
 	}
 
 	const up = fromParts.length - common;
-	const relParts = [...Array(up).fill('..'), ...toParts.slice(common)];
+	const relParts = [...Array<string>(up).fill('..'), ...toParts.slice(common)];
 	const rel = relParts.join('/');
+	const lastPart = toParts[toParts.length - 1];
 
-	return rel || './' + toParts[toParts.length - 1]!;
+	return rel || (lastPart ? `./${lastPart}` : rel);
 }
 
 export function encodeMarkdownPath(pathValue: string): string {

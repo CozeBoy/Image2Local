@@ -29,6 +29,14 @@ export interface ImageMatch {
 	type: 'markdown' | 'html' | 'bare-url';
 }
 
+function regexGroup(match: RegExpMatchArray, index: number): string {
+	const value = match[index];
+	if (value === undefined) {
+		throw new Error(`Missing regex capture group at index ${index}`);
+	}
+	return value;
+}
+
 export function findImageMatches(content: string): ImageMatch[] {
 	const matches: ImageMatch[] = [];
 	const occupied: Array<[number, number]> = [];
@@ -55,13 +63,13 @@ export function findImageMatches(content: string): ImageMatch[] {
 
 	const mdRegex = new RegExp(IMAGE_MARKDOWN_REGEX.source, 'g');
 	while ((match = mdRegex.exec(content)) !== null) {
-		addMatch(match[0], match[2]!, match.index, 'markdown', match[1] ?? '');
+		addMatch(match[0], regexGroup(match, 2), match.index, 'markdown', match[1] ?? '');
 	}
 
 	const htmlRegex = new RegExp(HTML_IMG_REGEX.source, 'gi');
 	while ((match = htmlRegex.exec(content)) !== null) {
 		const altMatch = match[0].match(/\balt=["']([^"']*)["']/i);
-		addMatch(match[0], match[1]!, match.index, 'html', altMatch?.[1] ?? '');
+		addMatch(match[0], regexGroup(match, 1), match.index, 'html', altMatch?.[1] ?? '');
 	}
 
 	const bareRegex = new RegExp(BARE_IMAGE_URL_REGEX.source, 'gi');
@@ -91,7 +99,7 @@ function findAllMarkdownImageEmbeds(content: string): MarkdownEmbed[] {
 		embeds.push({
 			fullMatch: match[0],
 			alt: match[1] ?? '',
-			src: match[2]!.trim(),
+			src: regexGroup(match, 2).trim(),
 			index: match.index,
 		});
 	}
@@ -142,8 +150,9 @@ function extensionFromUrl(url: string): string | null {
 
 function extensionFromContentType(contentType: string | null): string | null {
 	if (!contentType) return null;
-	const mime = contentType.split(';')[0]!.trim().replace('image/', '');
-	return extensionFromMime(mime);
+	const mimePart = contentType.split(';')[0]?.trim().replace('image/', '');
+	if (!mimePart) return null;
+	return extensionFromMime(mimePart);
 }
 
 async function ensureFolder(app: App, folderPath: string): Promise<void> {
@@ -205,8 +214,8 @@ async function downloadRemoteImage(
 function decodeBase64Image(src: string): { data: ArrayBuffer; ext: string } {
 	const match = src.match(DATA_URL_REGEX);
 	if (!match) throw new Error('Invalid base64 image');
-	const mime = match[1]!;
-	const base64 = match[2]!;
+	const mime = regexGroup(match, 1);
+	const base64 = regexGroup(match, 2);
 	const binary = atob(base64);
 	const bytes = new Uint8Array(binary.length);
 	for (let i = 0; i < binary.length; i++) {
@@ -369,8 +378,8 @@ export async function getImageSrcFromElement(
 
 	const allEmbeds = findAllMarkdownImageEmbeds(content);
 	if (clickedIndex < allEmbeds.length) {
-		const embed = allEmbeds[clickedIndex]!;
-		if (isProcessableImageSource(embed.src)) {
+		const embed = allEmbeds[clickedIndex];
+		if (embed && isProcessableImageSource(embed.src)) {
 			const matchIndex = saveableMatches.findIndex(
 				(m) => m.index === embed.index && m.src === embed.src,
 			);
@@ -379,7 +388,10 @@ export async function getImageSrcFromElement(
 	}
 
 	if (saveableMatches.length === 1) {
-		return { src: saveableMatches[0]!.src, matchIndex: 0 };
+		const onlyMatch = saveableMatches[0];
+		if (onlyMatch) {
+			return { src: onlyMatch.src, matchIndex: 0 };
+		}
 	}
 
 	return null;
@@ -428,7 +440,7 @@ export function getImageUrlAtCursor(line: string, cursorCh: number): string | nu
 		const start = match.index;
 		const end = start + match[0].length;
 		if (cursorCh >= start && cursorCh <= end) {
-			const src = match[2]!.trim();
+			const src = regexGroup(match, 2).trim();
 			if (isProcessableImageSource(src)) return src;
 		}
 	}
@@ -438,7 +450,7 @@ export function getImageUrlAtCursor(line: string, cursorCh: number): string | nu
 		const start = match.index;
 		const end = start + match[0].length;
 		if (cursorCh >= start && cursorCh <= end) {
-			return match[1]!;
+			return regexGroup(match, 1);
 		}
 	}
 
@@ -447,7 +459,7 @@ export function getImageUrlAtCursor(line: string, cursorCh: number): string | nu
 		const start = match.index;
 		const end = start + match[0].length;
 		if (cursorCh >= start && cursorCh <= end) {
-			return match[1]!;
+			return regexGroup(match, 1);
 		}
 	}
 

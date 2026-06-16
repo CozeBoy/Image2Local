@@ -11,6 +11,10 @@ import {
 import { DEFAULT_SETTINGS, Image2LocalSettings } from './settings';
 import { Image2LocalSettingTab } from './settingTab';
 
+function isPartialSettings(data: unknown): data is Partial<Image2LocalSettings> {
+	return typeof data === 'object' && data !== null;
+}
+
 export default class Image2LocalPlugin extends Plugin {
 	settings: Image2LocalSettings = DEFAULT_SETTINGS;
 	private processingFiles = new Set<string>();
@@ -35,15 +39,6 @@ export default class Image2LocalPlugin extends Plugin {
 		);
 
 		this.registerEvent(
-			this.app.workspace.on('editor-paste', (_evt, _editor, view) => {
-				if (!this.settings.enabled || !view.file) return;
-				window.setTimeout(() => {
-					void this.processActiveFile(view.file!);
-				}, 100);
-			}),
-		);
-
-		this.registerEvent(
 			this.app.vault.on('modify', (file) => {
 				if (!this.settings.enabled || !(file instanceof TFile)) return;
 				if (file.extension !== 'md') return;
@@ -57,7 +52,11 @@ export default class Image2LocalPlugin extends Plugin {
 	onunload() {}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const data: unknown = await this.loadData();
+		this.settings = {
+			...DEFAULT_SETTINGS,
+			...(isPartialSettings(data) ? data : {}),
+		};
 	}
 
 	async saveSettings() {

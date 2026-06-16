@@ -6,28 +6,42 @@ import {
 	isInsideMarkdownView,
 } from './imageProcessor';
 
+function resolveImageElement(target: EventTarget | null): HTMLImageElement | null {
+	if (!(target instanceof HTMLElement)) return null;
+	if (target.instanceOf(HTMLImageElement)) return target;
+	const closest = target.closest('img');
+	if (closest?.instanceOf(HTMLImageElement)) return closest;
+	return null;
+}
+
 export function registerImageContextMenu(plugin: Image2LocalPlugin): void {
-	plugin.registerDomEvent(
-		document,
-		'contextmenu',
-		(evt: MouseEvent) => {
-			const target = evt.target;
-			if (!(target instanceof HTMLElement)) return;
+	const registerOnDocument = (doc: Document) => {
+		plugin.registerDomEvent(
+			doc,
+			'contextmenu',
+			(evt: MouseEvent) => {
+				const img = resolveImageElement(evt.target);
+				if (!img) return;
+				if (!isInsideMarkdownView(img)) return;
 
-			const img =
-				target instanceof HTMLImageElement ? target : target.closest('img');
-			if (!(img instanceof HTMLImageElement)) return;
-			if (!isInsideMarkdownView(img)) return;
+				const file = getActiveMarkdownFile(plugin.app);
+				if (!file) return;
 
-			const file = getActiveMarkdownFile(plugin.app);
-			if (!file) return;
+				evt.preventDefault();
+				evt.stopPropagation();
 
-			evt.preventDefault();
-			evt.stopPropagation();
+				void showImageContextMenu(plugin, evt, img, file);
+			},
+			true,
+		);
+	};
 
-			void showImageContextMenu(plugin, evt, img, file);
-		},
-		true,
+	registerOnDocument(window.activeDocument);
+
+	plugin.registerEvent(
+		plugin.app.workspace.on('window-open', (win) => {
+			registerOnDocument(win.doc);
+		}),
 	);
 }
 

@@ -13,9 +13,10 @@ export const USER_AGENTS: readonly string[] = [
 
 export function pickUserAgent(index: number): string {
 	const safeIndex = ((index % USER_AGENTS.length) + USER_AGENTS.length) % USER_AGENTS.length;
-	return USER_AGENTS[safeIndex]!;
+	return USER_AGENTS[safeIndex] ?? USER_AGENTS[0] ?? '';
 }
 
 export function pickRandomUserAgent(): string {
-	return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)]!;
+	const index = Math.floor(Math.random() * USER_AGENTS.length);
+	return USER_AGENTS[index] ?? USER_AGENTS[0] ?? '';
 }
