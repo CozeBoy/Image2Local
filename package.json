@@ -1,0 +1,19 @@
+{
+	"name": "image2local",
+	"version": "1.0.0",
+	"description": "Obsidian plugin to save online images to local storage",
+	"main": "main.js",
+	"type": "module",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+	},
+	"author": "CozeBoy",
+	"license": "MIT",
+	"devDependencies": {
+		"@types/node": "^22.15.17",
+		"esbuild": "^0.28.1",
+		"obsidian": "latest",
+		"typescript": "^5.8.3"
+	}
+}
