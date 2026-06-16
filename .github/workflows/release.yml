@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release version (must match manifest.json version)'
+        required: true
+        default: '1.0.0'
 
 permissions:
   contents: write
@@ -23,6 +29,7 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
           files: |
             main.js
             manifest.json
