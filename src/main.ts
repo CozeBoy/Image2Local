@@ -1,4 +1,4 @@
-import { Editor, Notice, Plugin, TFile } from 'obsidian';
+import { App, Editor, Notice, Plugin, TFile } from 'obsidian';
 import { registerImageContextMenu } from './contextMenu';
 import { t } from './i18n';
 import {
@@ -15,14 +15,25 @@ function isPartialSettings(data: unknown): data is Partial<Image2LocalSettings> 
 	return typeof data === 'object' && data !== null;
 }
 
+interface AppSettingApi {
+	open(): void;
+	openTabById(id: string): void;
+}
+
+interface AppWithSetting extends App {
+	setting: AppSettingApi;
+}
+
 export default class Image2LocalPlugin extends Plugin {
 	settings: Image2LocalSettings = DEFAULT_SETTINGS;
 	private processingFiles = new Set<string>();
+	private ribbonIconEl: HTMLElement | null = null;
 
 	async onload() {
 		await this.loadSettings();
 
 		this.addSettingTab(new Image2LocalSettingTab(this.app, this));
+		this.refreshRibbonIcon();
 
 		this.addCommand({
 			id: 'save-all-images-in-note',
@@ -49,7 +60,25 @@ export default class Image2LocalPlugin extends Plugin {
 		);
 	}
 
-	onunload() {}
+	onunload() {
+		this.ribbonIconEl = null;
+	}
+
+	openSettings(): void {
+		const setting = (this.app as AppWithSetting).setting;
+		setting.open();
+		setting.openTabById(this.manifest.id);
+	}
+
+	refreshRibbonIcon(): void {
+		this.ribbonIconEl?.remove();
+		this.ribbonIconEl = null;
+		if (!this.settings.showRibbonIcon) return;
+
+		this.ribbonIconEl = this.addRibbonIcon('images', this.translate('openSettings'), () => {
+			this.openSettings();
+		});
+	}
 
 	async loadSettings() {
 		const data: unknown = await this.loadData();

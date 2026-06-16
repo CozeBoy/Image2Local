@@ -7,6 +7,7 @@ export type Language = 'zh' | 'en';
 
 export interface Image2LocalSettings {
 	enabled: boolean;
+	showRibbonIcon: boolean;
 	storageMode: StorageMode;
 	storagePath: string;
 	language: Language;
@@ -16,6 +17,7 @@ export interface Image2LocalSettings {
 
 export const DEFAULT_SETTINGS: Image2LocalSettings = {
 	enabled: true,
+	showRibbonIcon: false,
 	storageMode: 'relative-to-note',
 	storagePath: 'image_files',
 	language: 'zh',
