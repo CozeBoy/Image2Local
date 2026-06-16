@@ -26,7 +26,7 @@ Save online images, base64 data, and bare image URLs in your Obsidian notes to l
 
 ### Manual installation
 
-1. Copy this folder to `<vault>/.obsidian/plugins/image2local/`
+1. Copy this folder to `<vault>/.obsidian/plugins/image-to-local/`
 2. Run `npm install && npm run build` to generate `main.js`
 3. Enable **Image2Local** under **Settings → Community plugins**
 

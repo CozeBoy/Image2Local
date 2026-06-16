@@ -26,7 +26,7 @@
 
 ### 手动安装
 
-1. 将本文件夹复制到 `<仓库>/.obsidian/plugins/image2local/`
+1. 将本文件夹复制到 `<仓库>/.obsidian/plugins/image-to-local/`
 2. 运行 `npm install && npm run build` 生成 `main.js`
 3. 在 **设置 → 社区插件** 中启用 **Image2Local**
 

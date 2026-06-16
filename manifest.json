@@ -1,7 +1,7 @@
 {
-	"id": "image2local",
+	"id": "image-to-local",
 	"name": "Image2Local",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "1.5.0",
 	"description": "Save online images, base64 data, and bare image URLs in notes to local storage with configurable paths, batch conversion, and right-click support.",
 	"author": "CozeBoy",
